@@ -1,5 +1,6 @@
 import { confirmAlert, LaunchType, open, getPreferenceValues } from "@raycast/api";
 import { crossLaunchCommand, LaunchOptions } from "raycast-cross-extension";
+import type { ExtensionPreferences } from "./types";
 
 export const { enableFocusWhileFocused } = getPreferenceValues<ExtensionPreferences>();
 

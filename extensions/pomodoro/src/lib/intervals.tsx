@@ -1,7 +1,7 @@
 import { Cache, LaunchType, LocalStorage, getPreferenceValues, launchCommand } from "@raycast/api";
 import { IntervalTitles } from "./constants";
 import { enableFocusWhileFocused, setDND } from "./doNotDisturb";
-import { Interval, IntervalExecutor, IntervalType } from "./types";
+import { Interval, IntervalExecutor, IntervalType, Preferences } from "./types";
 
 const cache = new Cache();
 

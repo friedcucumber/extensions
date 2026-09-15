@@ -15,6 +15,8 @@ import {
   slackSkipInterval,
 } from "./lib/slack/slackIntervals";
 
+const shortcutModifier = process.platform === "win32" ? "ctrl" : "cmd";
+
 const createAction = (action: () => Promise<void> | Promise<Interval | undefined>) => async () => {
   await action();
 
@@ -38,7 +40,7 @@ const ActionsList = () => {
     <Action
       onAction={createAction(async () => slackSkipInterval(token))}
       title={"Skip to Next"}
-      shortcut={{ modifiers: ["cmd"], key: "n" }}
+      shortcut={{ modifiers: [shortcutModifier as any], key: "n" }}
     />
   ) : null;
 
@@ -190,22 +192,22 @@ const EndOfInterval = () => {
           <Action
             title={executor.title}
             onAction={createAction(async () => await executor.onStart(token))}
-            shortcut={{ modifiers: ["cmd"], key: "n" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "n" }}
           />
           <Action
             title={FocusText}
             onAction={createAction(async () => slackCreateInterval("focus", token))}
-            shortcut={{ modifiers: ["cmd"], key: "f" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "f" }}
           />
           <Action
             title={ShortBreakText}
             onAction={createAction(() => slackCreateInterval("short-break", token))}
-            shortcut={{ modifiers: ["cmd"], key: "s" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "s" }}
           />
           <Action
             title={LongBreakText}
             onAction={createAction(async () => slackCreateInterval("long-break", token))}
-            shortcut={{ modifiers: ["cmd"], key: "l" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "l" }}
           />
         </ActionPanel>
       }

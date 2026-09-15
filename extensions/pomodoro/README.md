@@ -1,6 +1,6 @@
 # Pomodoro
 
-Raycast-only implementation of pomodoro technique
+Raycast implementation of pomodoro technique (macOS and Windows)
 
 [![raycast-cross-extension-badge]][raycast-cross-extension-link]
 
@@ -8,7 +8,7 @@ Raycast-only implementation of pomodoro technique
 
 This extension follows [Raycast Cross-Extension Conventions][raycast-cross-extension-link].
 
-The `Enable Mac Do Not Disturb while Focused` feature requires [Do Not Disturb](https://www.raycast.com/yakitrak/do-not-disturb) extension.
+The `Enable Do Not Disturb while Focused` feature requires [Do Not Disturb](https://www.raycast.com/yakitrak/do-not-disturb) extension (macOS only).
 
 [raycast-cross-extension-badge]: https://shields.io/badge/Raycast-Cross--Extension-eee?labelColor=FF6363&logo=raycast&logoColor=fff&style=flat-square
 [raycast-cross-extension-link]: https://github.com/LitoMore/raycast-cross-extension-conventions

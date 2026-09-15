@@ -44,3 +44,25 @@ export type Quote = {
   a: string;
   h: string;
 };
+
+export type Preferences = {
+  enableTimeOnMenuBar: boolean;
+  hideTimeWhenStopped: boolean;
+  hideMenuBarWhenStopped: boolean;
+  enableFocusWhileFocused: boolean;
+  focusIntervalDuration: string;
+  shortBreakIntervalDuration: string;
+  longBreakIntervalDuration: string;
+  longBreakStartThreshold: string;
+  randomRewards: string;
+  enableConfetti: boolean;
+  enableQuote: boolean;
+  sound: string;
+  enableImage: boolean;
+  completionImage: string;
+  giphyAPIKey: string;
+  giphyTag: string;
+  giphyRating: string;
+};
+
+export type ExtensionPreferences = Preferences;

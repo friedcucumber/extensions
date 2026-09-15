@@ -2,6 +2,7 @@ import { exec } from "node:child_process";
 import { Detail, launchCommand, LaunchType, closeMainWindow, popToRoot, List, Icon } from "@raycast/api";
 import { ActionPanel, Action } from "@raycast/api";
 import { useFetch } from "@raycast/utils";
+import { useState } from "react";
 import {
   continueInterval,
   createInterval,
@@ -18,6 +19,107 @@ import {
 import { FocusText, IntervalTitles, ShortBreakText, LongBreakText } from "./lib/constants";
 import { GiphyResponse, Interval, Quote } from "./lib/types";
 import { checkDNDExtensionInstall } from "./lib/doNotDisturb";
+
+const shortcutModifier = process.platform === "win32" ? "ctrl" : "cmd";
+
+const getSoundFileName = (soundName: string): string => {
+  const platform = process.platform;
+  
+  if (!soundName) return "";
+  
+  if (platform === "darwin") {
+    // macOS - звуки как есть в системе
+    return `/System/Library/Sounds/${soundName}.aiff`;
+  } else if (platform === "win32") {
+    // Windows - маппим имена на имеющиеся .wav файлы
+    const soundMap: { [key: string]: string } = {
+      "Submarine": "Alarm01.wav",
+      "Tink": "Alarm02.wav", 
+      "Ping": "Alarm03.wav"
+    };
+    
+    const wavFile = soundMap[soundName] || "Alarm01.wav";
+    return `C:\\Windows\\Media\\${wavFile}`;
+  }
+  
+  return "";
+};
+
+const playSound = () => {
+  const soundFile = preferences.sound;
+  
+  if (!soundFile) return;
+
+  const platform = process.platform;
+  const soundPath = getSoundFileName(soundFile);
+
+  if (platform === "darwin") {
+    // macOS
+    exec(`afplay "${soundPath}" -v 10`, (err) => {
+      if (err) console.error("Sound error:", err);
+    });
+  } else if (platform === "win32") {
+    // Windows - используем System.Media.SoundPlayer
+    exec(`powershell -Command "& { [System.Media.SoundPlayer]::new('${soundPath}').PlaySync() }"`, (err) => {
+      if (err) {
+        console.error("SoundPlayer failed, trying alternative method");
+        // Fallback - системный beep
+        exec(`powershell -Command "[console]::beep(1000, 500)"`);
+      }
+    });
+  }
+};
+
+const durations = [1, 3, 5, 10, 15, 20, 25, 30, 45, 60];
+
+const SelectDurationList = ({ intervalType, onBack }: { intervalType: "focus" | "short-break" | "long-break"; onBack: () => void }) => {
+  const getTitle = () => {
+    switch (intervalType) {
+      case "focus":
+        return "Select Focus Duration";
+      case "short-break":
+        return "Select Short Break Duration";
+      case "long-break":
+        return "Select Long Break Duration";
+    }
+  };
+
+  const createActionWithDuration = (duration: number) => () => {
+    createInterval(intervalType, false, duration * 60);
+
+    try {
+      launchCommand({
+        name: "pomodoro-menu-bar",
+        type: LaunchType.UserInitiated,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+    popToRoot();
+    closeMainWindow();
+  };
+
+  return (
+    <List navigationTitle={getTitle()}>
+      {durations.map((duration) => (
+        <List.Item
+          key={duration}
+          title={`${duration}:00`}
+          icon="⏱️"
+          actions={
+            <ActionPanel>
+              <Action
+                title="Start"
+                onAction={createActionWithDuration(duration)}
+              />
+              <Action title="Back" onAction={onBack} />
+            </ActionPanel>
+          }
+        />
+      ))}
+    </List>
+  );
+};
 
 const createAction = (action: () => void) => () => {
   action();
@@ -36,11 +138,16 @@ const createAction = (action: () => void) => () => {
 };
 
 const ActionsList = () => {
+  const [selectedType, setSelectedType] = useState<"focus" | "short-break" | "long-break" | null>(null);
   const currentInterval = getCurrentInterval();
   checkDNDExtensionInstall();
   const skipAction = currentInterval ? (
-    <Action onAction={createAction(skipInterval)} title={"Skip to Next"} shortcut={{ modifiers: ["cmd"], key: "n" }} />
+    <Action onAction={createAction(skipInterval)} title={"Skip to Next"} shortcut={{ modifiers: [shortcutModifier as any], key: "n" }} />
   ) : null;
+
+  if (selectedType && !currentInterval) {
+    return <SelectDurationList intervalType={selectedType} onBack={() => setSelectedType(null)} />;
+  }
 
   return (
     <List navigationTitle="Control Pomodoro Timers">
@@ -100,31 +207,31 @@ const ActionsList = () => {
         <>
           <List.Item
             title={`Focus`}
-            subtitle={`${preferences.focusIntervalDuration}:00`}
+            subtitle={`Default: ${preferences.focusIntervalDuration}:00`}
             icon={`🎯`}
             actions={
               <ActionPanel>
-                <Action onAction={createAction(() => createInterval("focus"))} title={"Focus"} />
+                <Action title="Choose Duration" onAction={() => setSelectedType("focus")} />
               </ActionPanel>
             }
           />
           <List.Item
             title={`Short Break`}
-            subtitle={`${preferences.shortBreakIntervalDuration}:00`}
+            subtitle={`Default: ${preferences.shortBreakIntervalDuration}:00`}
             icon={`🧘‍♂️`}
             actions={
               <ActionPanel>
-                <Action onAction={createAction(() => createInterval("short-break"))} title={"Short Break"} />
+                <Action title="Choose Duration" onAction={() => setSelectedType("short-break")} />
               </ActionPanel>
             }
           />
           <List.Item
             title={`Long Break`}
-            subtitle={`${preferences.longBreakIntervalDuration}:00`}
+            subtitle={`Default: ${preferences.longBreakIntervalDuration}:00`}
             icon={`🚶`}
             actions={
               <ActionPanel>
-                <Action onAction={createAction(() => createInterval("long-break"))} title={"Long Break"} />
+                <Action title="Choose Duration" onAction={() => setSelectedType("long-break")} />
               </ActionPanel>
             }
           />
@@ -156,7 +263,6 @@ const EndOfInterval = ({ intervalType }: { intervalType?: Interval["type"] }) =>
   if (preferences.enableConfetti) {
     exec(`open ${process.env.RAYCAST_SCHEME ?? "raycast"}://extensions/raycast/raycast/confetti`, function (err) {
       if (err) {
-        // handle error
         console.error(err);
         return;
       }
@@ -164,7 +270,7 @@ const EndOfInterval = ({ intervalType }: { intervalType?: Interval["type"] }) =>
   }
 
   if (preferences.sound) {
-    exec(`afplay /System/Library/Sounds/${preferences.sound}.aiff -v 10 && $$`);
+    playSound();
   }
 
   if (preferences.enableQuote) {
@@ -221,22 +327,22 @@ const EndOfInterval = ({ intervalType }: { intervalType?: Interval["type"] }) =>
           <Action
             title={executor.title}
             onAction={createAction(executor.onStart)}
-            shortcut={{ modifiers: ["cmd"], key: "n" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "n" }}
           />
           <Action
             title={FocusText}
             onAction={createAction(() => createInterval("focus"))}
-            shortcut={{ modifiers: ["cmd"], key: "f" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "f" }}
           />
           <Action
             title={ShortBreakText}
             onAction={createAction(() => createInterval("short-break"))}
-            shortcut={{ modifiers: ["cmd"], key: "s" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "s" }}
           />
           <Action
             title={LongBreakText}
             onAction={createAction(() => createInterval("long-break"))}
-            shortcut={{ modifiers: ["cmd"], key: "l" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "l" }}
           />
         </ActionPanel>
       }

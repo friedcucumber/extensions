@@ -28,6 +28,8 @@ const IconTint: Color.Dynamic = {
   adjustContrast: false,
 };
 
+const shortcutModifier = process.platform === "win32" ? "ctrl" : "cmd";
+
 const slackClient = OAuthService.slack({
   scope: "users.profile:write dnd:write",
 });
@@ -149,34 +151,34 @@ export default function TogglePomodoroTimer() {
               title="Continue"
               icon={Icon.Play}
               onAction={onContinue}
-              shortcut={{ modifiers: ["cmd"], key: "c" }}
+              shortcut={{ modifiers: [shortcutModifier as any], key: "c" }}
             />
           ) : (
             <MenuBarExtra.Item
               title="Pause"
               icon={Icon.Pause}
               onAction={onPause}
-              shortcut={{ modifiers: ["cmd"], key: "p" }}
+              shortcut={{ modifiers: [shortcutModifier as any], key: "p" }}
             />
           )}
           <MenuBarExtra.Item
             title="Reset"
             icon={Icon.Stop}
             onAction={onReset}
-            shortcut={{ modifiers: ["cmd"], key: "r" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "r" }}
           />
           <MenuBarExtra.Item
             title="Restart Current"
             icon={Icon.Repeat}
             onAction={onRestart}
-            shortcut={{ modifiers: ["cmd"], key: "t" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "t" }}
           />
           <MenuBarExtra.Item
             title="Skip to Next"
             subtitle={IntervalTitles[getNextIntervalType(currentInterval.type)]}
             icon={Icon.Forward}
             onAction={onSkip}
-            shortcut={{ modifiers: ["cmd"], key: "n" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "n" }}
           />
         </>
       ) : (
@@ -186,21 +188,21 @@ export default function TogglePomodoroTimer() {
             subtitle={`${preferences.focusIntervalDuration}:00`}
             icon={`🎯`}
             onAction={() => onStart("focus")}
-            shortcut={{ modifiers: ["cmd"], key: "f" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "f" }}
           />
           <MenuBarExtra.Item
             title={ShortBreakText}
             subtitle={`${preferences.shortBreakIntervalDuration}:00`}
             icon={`🧘‍♂️`}
             onAction={() => onStart("short-break")}
-            shortcut={{ modifiers: ["cmd"], key: "s" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "s" }}
           />
           <MenuBarExtra.Item
             title={LongBreakText}
             subtitle={`${preferences.longBreakIntervalDuration}:00`}
             icon={`🚶`}
             onAction={() => onStart("long-break")}
-            shortcut={{ modifiers: ["cmd"], key: "l" }}
+            shortcut={{ modifiers: [shortcutModifier as any], key: "l" }}
           />
         </>
       )}
